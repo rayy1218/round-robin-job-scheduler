@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Round-Robin Job Scheduler - Interactive Demo</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #0f3460;
+            --text-primary: #eaeaea;
+            --text-secondary: #a0a0a0;
+            --accent-blue: #4da8da;
+            --accent-green: #4ade80;
+            --accent-yellow: #facc15;
+            --accent-red: #f87171;
+            --accent-purple: #a78bfa;
+            --accent-orange: #fb923c;
+            --border-color: #334155;
+        }
+
+        .light-theme {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #cbd5e1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .mode-toggle {
+            background: var(--accent-purple);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .mode-toggle:hover {
+            opacity: 0.9;
+        }
+
+        .mode-toggle.active {
+            background: var(--accent-green);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--accent-yellow);
+            color: #1a1a2e;
+        }
+
+        .btn-danger {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .speed-control label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .speed-slider {
+            width: 120px;
+            cursor: pointer;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .comparison-mode .main-content {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .single-mode .main-content {
+            grid-template-columns: 1fr;
+        }
+
+        .simulation-panel {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-title .badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: var(--accent-purple);
+            color: white;
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Job Queue */
+        .job-queue {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 100px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .job-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        .job-item.new {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .job-item.completing {
+            animation: completeJob 0.5s ease-out forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes completeJob {
+            to {
+                opacity: 0;
+                transform: translateX(20px) scale(0.9);
+            }
+        }
+
+        .job-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .job-info {
+            flex: 1;
+        }
+
+        .job-name {
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .job-tasks {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .job-progress {
+            width: 80px;
+            height: 6px;
+            background: var(--bg-primary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .job-progress-bar {
+            height: 100%;
+            background: var(--accent-green);
+            transition: width 0.3s ease;
+        }
+
+        /* Round-Robin Queue Visualization */
+        .rr-queue-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            min-height: 60px;
+            overflow-x: auto;
+        }
+
+        .rr-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            min-width: 60px;
+        }
+
+        .rr-item.active {
+            border-color: var(--accent-green);
+            transform: scale(1.05);
+        }
+
+        .rr-item.rotating {
+            animation: rotateOut 0.4s ease-out;
+        }
+
+        @keyframes rotateOut {
+            0% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            50% {
+                transform: translateX(-10px);
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .rr-arrow {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        /* Worker Pool */
+        .worker-pool {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+        }
+
+        .worker {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 8px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .worker.busy {
+            border: 2px solid var(--accent-green);
+        }
+
+        .worker.idle {
+            opacity: 0.5;
+        }
+
+        .worker-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+        }
+
+        .worker.busy .worker-icon {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .worker-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .worker-job {
+            font-size: 0.65rem;
+            margin-top: 4px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--bg-secondary);
+        }
+
+        .worker-progress {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-primary);
+            border-radius: 2px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .worker-progress-bar {
+            height: 100%;
+            background: var(--accent-blue);
+            transition: width 0.1s linear;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            min-height: 80px;
+        }
+
+        .timeline-track {
+            position: relative;
+            height: 30px;
+            margin-bottom: 10px;
+        }
+
+        .timeline-label {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            width: 60px;
+        }
+
+        .timeline-bar {
+            position: absolute;
+            left: 70px;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 20px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .timeline-segment {
+            position: absolute;
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .timeline-time {
+            text-align: right;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Completed Jobs */
+        .completed-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .completed-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            font-size: 0.75rem;
+        }
+
+        .completed-item.new {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .completed-item .checkmark {
+            color: var(--accent-green);
+        }
+
+        .completed-time {
+            color: var(--text-secondary);
+            font-size: 0.65rem;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding: 10px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            font-size: 0.75rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .controls {
+                flex-direction: column;
+            }
+
+            .speed-control {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+
+        /* Hidden panel in single mode */
+        .single-mode .fifo-panel {
+            display: none;
+        }
+    </style>
+</head>
+<body class="single-mode">
+    <div class="container">
+        <header>
+            <h1>Round-Robin Job Scheduler</h1>
+            <div class="header-controls">
+                <button class="mode-toggle" onclick="toggleComparisonMode()">
+                    Compare with FIFO
+                </button>
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    Toggle Theme
+                </button>
+            </div>
+        </header>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="addJob(5)">
+                + Small Job (5 tasks)
+            </button>
+            <button class="btn btn-warning" onclick="addJob(20)">
+                + Medium Job (20 tasks)
+            </button>
+            <button class="btn btn-danger" onclick="addJob(50)">
+                + Large Job (50 tasks)
+            </button>
+            <button class="btn btn-success" id="startBtn" onclick="toggleSimulation()">
+                ▶ Start
+            </button>
+            <button class="btn" style="background: var(--bg-tertiary); color: var(--text-primary);" onclick="resetSimulation()">
+                ↺ Reset
+            </button>
+            <div class="speed-control">
+                <label>Speed:</label>
+                <input type="range" class="speed-slider" min="1" max="10" value="5" onchange="updateSpeed(this.value)">
+                <span id="speedValue">1x</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Round-Robin Panel -->
+            <div class="simulation-panel rr-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        With Round-Robin
+                        <span class="badge">FAIR</span>
+                    </div>
+                    <div class="stats">
+                        <div class="stat">
+                            Time: <span class="stat-value" id="rr-time">0s</span>
+                        </div>
+                        <div class="stat">
+                            Completed: <span class="stat-value" id="rr-completed">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Job Queue</div>
+                    <div class="job-queue" id="rr-job-queue">
+                        <div class="empty-state">No jobs in queue. Add a job to start.</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Round-Robin Queue (Front → Back)</div>
+                    <div class="rr-queue-container" id="rr-queue">
+                        <div class="empty-state" style="padding: 10px;">Queue empty</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Worker Pool (<span id="rr-active">0</span>/12 active)</div>
+                    <div class="worker-pool" id="rr-workers"></div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Completed Jobs</div>
+                    <div class="completed-list" id="rr-completed-list">
+                        <div class="empty-state" style="padding: 10px; width: 100%;">No completed jobs yet</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FIFO Panel (Comparison) -->
+            <div class="simulation-panel fifo-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        Without Round-Robin (FIFO)
+                        <span class="badge" style="background: var(--accent-red);">BLOCKING</span>
+                    </div>
+                    <div class="stats">
+                        <div class="stat">
+                            Time: <span class="stat-value" id="fifo-time">0s</span>
+                        </div>
+                        <div class="stat">
+                            Completed: <span class="stat-value" id="fifo-completed">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Job Queue</div>
+                    <div class="job-queue" id="fifo-job-queue">
+                        <div class="empty-state">No jobs in queue. Add a job to start.</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Processing Order (First In, First Out)</div>
+                    <div class="rr-queue-container" id="fifo-queue">
+                        <div class="empty-state" style="padding: 10px;">Queue empty</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Worker Pool (<span id="fifo-active">0</span>/12 active)</div>
+                    <div class="worker-pool" id="fifo-workers"></div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Completed Jobs</div>
+                    <div class="completed-list" id="fifo-completed-list">
+                        <div class="empty-state" style="padding: 10px; width: 100%;">No completed jobs yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--accent-blue);"></div>
+                <span>Small Job</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--accent-yellow);"></div>
+                <span>Medium Job</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--accent-red);"></div>
+                <span>Large Job</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--accent-green);"></div>
+                <span>Active Worker</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Job colors based on size
+        const JOB_COLORS = {
+            small: '#4da8da',
+            medium: '#facc15',
+            large: '#f87171'
+        };
+
+        // Simulation state
+        class Simulation {
+            constructor(name, isRoundRobin) {
+                this.name = name;
+                this.isRoundRobin = isRoundRobin;
+                this.jobs = [];
+                this.queue = [];
+                this.workers = Array(12).fill(null).map((_, i) => ({
+                    id: i,
+                    busy: false,
+                    currentJob: null,
+                    progress: 0
+                }));
+                this.completedJobs = [];
+                this.time = 0;
+                this.jobCounter = 0;
+                this.maxWorkers = 12;
+            }
+
+            addJob(taskCount) {
+                const size = taskCount <= 10 ? 'small' : taskCount <= 30 ? 'medium' : 'large';
+                const job = {
+                    id: ++this.jobCounter,
+                    name: `Job ${this.jobCounter}`,
+                    totalTasks: taskCount,
+                    completedTasks: 0,
+                    inProgressTasks: 0,  // Track tasks currently being processed
+                    color: JOB_COLORS[size],
+                    size: size,
+                    startTime: this.time
+                };
+                this.jobs.push(job);
+                this.queue.push(job.id);
+                return job;
+            }
+
+            tick() {
+                // Process active workers
+                for (const worker of this.workers) {
+                    if (worker.busy && worker.currentJob !== null) {
+                        // Progress based on random task duration (5-15% per tick)
+                        worker.progress += worker.taskSpeed;
+
+                        if (worker.progress >= 100) {
+                            // Task complete
+                            const job = this.jobs.find(j => j.id === worker.currentJob);
+                            if (job) {
+                                job.completedTasks++;
+                                job.inProgressTasks--;
+
+                                if (job.completedTasks >= job.totalTasks) {
+                                    // Job complete - remove from queue
+                                    this.queue = this.queue.filter(id => id !== job.id);
+                                    this.completedJobs.push({
+                                        ...job,
+                                        completionTime: this.time
+                                    });
+                                    this.jobs = this.jobs.filter(j => j.id !== job.id);
+                                } else if (this.isRoundRobin) {
+                                    // Round-robin: move job to back of queue
+                                    const idx = this.queue.indexOf(job.id);
+                                    if (idx !== -1) {
+                                        this.queue.splice(idx, 1);
+                                        this.queue.push(job.id);
+                                    }
+                                }
+                            }
+
+                            // Free worker
+                            worker.busy = false;
+                            worker.currentJob = null;
+                            worker.progress = 0;
+                        }
+                    }
+                }
+
+                // Assign idle workers to jobs
+                for (const worker of this.workers) {
+                    if (!worker.busy && this.queue.length > 0) {
+                        // Get next job from queue
+                        let jobId;
+                        if (this.isRoundRobin) {
+                            // Round-robin: take from front
+                            jobId = this.queue[0];
+                        } else {
+                            // FIFO: process first job until complete
+                            jobId = this.queue[0];
+                        }
+
+                        const job = this.jobs.find(j => j.id === jobId);
+                        // Check if there are unclaimed tasks (not completed and not in progress)
+                        if (job && (job.completedTasks + job.inProgressTasks) < job.totalTasks) {
+                            job.inProgressTasks++;
+                            worker.busy = true;
+                            worker.currentJob = job.id;
+                            worker.progress = 0;
+                            // Random task speed: 5-15% per tick (faster = shorter task)
+                            worker.taskSpeed = 5 + Math.random() * 10;
+
+                            if (this.isRoundRobin) {
+                                // Rotate queue for round-robin
+                                this.queue.shift();
+                                this.queue.push(jobId);
+                            }
+                        }
+                    }
+                }
+
+                this.time++;
+            }
+
+            getActiveWorkerCount() {
+                return this.workers.filter(w => w.busy).length;
+            }
+
+            reset() {
+                this.jobs = [];
+                this.queue = [];
+                this.workers.forEach(w => {
+                    w.busy = false;
+                    w.currentJob = null;
+                    w.progress = 0;
+                });
+                this.completedJobs = [];
+                this.time = 0;
+                this.jobCounter = 0;
+            }
+        }
+
+        // Create simulations
+        const rrSim = new Simulation('rr', true);
+        const fifoSim = new Simulation('fifo', false);
+
+        let isRunning = false;
+        let speed = 1;
+        let animationId = null;
+        let comparisonMode = false;
+
+        // Initialize workers display
+        function initWorkers() {
+            ['rr', 'fifo'].forEach(prefix => {
+                const container = document.getElementById(`${prefix}-workers`);
+                container.innerHTML = '';
+                for (let i = 0; i < 12; i++) {
+                    container.innerHTML += `
+                        <div class="worker idle" id="${prefix}-worker-${i}">
+                            <div class="worker-icon">W${i + 1}</div>
+                            <div class="worker-label">Idle</div>
+                            <div class="worker-progress">
+                                <div class="worker-progress-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        // Render simulation state
+        function render() {
+            renderSimulation(rrSim, 'rr');
+            if (comparisonMode) {
+                renderSimulation(fifoSim, 'fifo');
+            }
+        }
+
+        // Track rendered items to avoid re-animating
+        const renderedJobs = { rr: new Set(), fifo: new Set() };
+        const renderedCompleted = { rr: new Set(), fifo: new Set() };
+
+        function renderSimulation(sim, prefix) {
+            // Update time and completed count
+            document.getElementById(`${prefix}-time`).textContent = `${Math.floor(sim.time / 10)}s`;
+            document.getElementById(`${prefix}-completed`).textContent = sim.completedJobs.length;
+            document.getElementById(`${prefix}-active`).textContent = sim.getActiveWorkerCount();
+
+            // Render job queue (update in place)
+            const jobQueue = document.getElementById(`${prefix}-job-queue`);
+            const currentJobIds = new Set(sim.jobs.map(j => j.id));
+
+            // Remove jobs that no longer exist
+            jobQueue.querySelectorAll('.job-item').forEach(el => {
+                const jobId = parseInt(el.dataset.jobId);
+                if (!currentJobIds.has(jobId)) {
+                    el.remove();
+                    renderedJobs[prefix].delete(jobId);
+                }
+            });
+
+            // Show empty state or update/add jobs
+            const emptyState = jobQueue.querySelector('.empty-state');
+            if (sim.jobs.length === 0) {
+                if (!emptyState) {
+                    jobQueue.innerHTML = '<div class="empty-state">No jobs in queue. Add a job to start.</div>';
+                }
+            } else {
+                if (emptyState) emptyState.remove();
+
+                sim.jobs.forEach(job => {
+                    let jobEl = jobQueue.querySelector(`[data-job-id="${job.id}"]`);
+
+                    if (!jobEl) {
+                        // Create new job element
+                        jobEl = document.createElement('div');
+                        jobEl.className = 'job-item new';
+                        jobEl.dataset.jobId = job.id;
+                        jobEl.style.borderLeftColor = job.color;
+                        jobEl.innerHTML = `
+                            <div class="job-color" style="background: ${job.color}"></div>
+                            <div class="job-info">
+                                <div class="job-name">${job.name}</div>
+                                <div class="job-tasks">${job.completedTasks}/${job.totalTasks} tasks</div>
+                            </div>
+                            <div class="job-progress">
+                                <div class="job-progress-bar" style="width: ${(job.completedTasks / job.totalTasks) * 100}%"></div>
+                            </div>
+                        `;
+                        jobQueue.appendChild(jobEl);
+                        renderedJobs[prefix].add(job.id);
+
+                        // Remove animation class after animation completes
+                        setTimeout(() => jobEl.classList.remove('new'), 300);
+                    } else {
+                        // Update existing job element
+                        jobEl.querySelector('.job-tasks').textContent = `${job.completedTasks}/${job.totalTasks} tasks`;
+                        jobEl.querySelector('.job-progress-bar').style.width = `${(job.completedTasks / job.totalTasks) * 100}%`;
+                    }
+                });
+            }
+
+            // Render round-robin queue (simpler, just update)
+            const rrQueue = document.getElementById(`${prefix}-queue`);
+            if (sim.queue.length === 0) {
+                rrQueue.innerHTML = '<div class="empty-state" style="padding: 10px;">Queue empty</div>';
+            } else {
+                rrQueue.innerHTML = sim.queue.map((jobId, index) => {
+                    const job = sim.jobs.find(j => j.id === jobId);
+                    if (!job) return '';
+                    return `
+                        <div class="rr-item ${index === 0 ? 'active' : ''}">
+                            <div class="job-color" style="background: ${job.color}; width: 10px; height: 10px;"></div>
+                            <div style="font-size: 0.7rem;">${job.name}</div>
+                        </div>
+                        ${index < sim.queue.length - 1 ? '<span class="rr-arrow">→</span>' : ''}
+                    `;
+                }).join('');
+            }
+
+            // Render workers
+            sim.workers.forEach((worker, i) => {
+                const el = document.getElementById(`${prefix}-worker-${i}`);
+                if (!el) return;
+
+                const job = worker.currentJob ? sim.jobs.find(j => j.id === worker.currentJob) : null;
+
+                el.className = `worker ${worker.busy ? 'busy' : 'idle'}`;
+                el.querySelector('.worker-label').textContent = worker.busy ? 'Busy' : 'Idle';
+
+                const jobLabel = el.querySelector('.worker-job');
+                if (job) {
+                    if (!jobLabel) {
+                        const label = document.createElement('div');
+                        label.className = 'worker-job';
+                        label.style.background = job.color;
+                        label.style.color = job.size === 'medium' ? '#1a1a2e' : 'white';
+                        label.textContent = job.name;
+                        el.appendChild(label);
+                    } else {
+                        jobLabel.style.background = job.color;
+                        jobLabel.style.color = job.size === 'medium' ? '#1a1a2e' : 'white';
+                        jobLabel.textContent = job.name;
+                    }
+                } else if (jobLabel) {
+                    jobLabel.remove();
+                }
+
+                el.querySelector('.worker-progress-bar').style.width = `${worker.progress}%`;
+            });
+
+            // Render completed jobs (update in place)
+            const completedList = document.getElementById(`${prefix}-completed-list`);
+            const completedEmptyState = completedList.querySelector('.empty-state');
+
+            if (sim.completedJobs.length === 0) {
+                if (!completedEmptyState) {
+                    completedList.innerHTML = '<div class="empty-state" style="padding: 10px; width: 100%;">No completed jobs yet</div>';
+                }
+            } else {
+                if (completedEmptyState) completedEmptyState.remove();
+
+                sim.completedJobs.forEach(job => {
+                    if (!renderedCompleted[prefix].has(job.id)) {
+                        const completedEl = document.createElement('div');
+                        completedEl.className = 'completed-item new';
+                        completedEl.dataset.jobId = job.id;
+                        completedEl.innerHTML = `
+                            <span class="checkmark">✓</span>
+                            <div class="job-color" style="background: ${job.color}; width: 8px; height: 8px;"></div>
+                            <span>${job.name}</span>
+                            <span class="completed-time">@${Math.floor(job.completionTime / 10)}s</span>
+                        `;
+                        completedList.appendChild(completedEl);
+                        renderedCompleted[prefix].add(job.id);
+
+                        // Remove animation class after animation completes
+                        setTimeout(() => completedEl.classList.remove('new'), 300);
+                    }
+                });
+            }
+        }
+
+        // Simulation loop
+        function tick() {
+            if (!isRunning) return;
+
+            rrSim.tick();
+            if (comparisonMode) {
+                fifoSim.tick();
+            }
+
+            render();
+
+            // Continue if there are jobs or active workers
+            const rrHasWork = rrSim.jobs.length > 0 || rrSim.queue.length > 0 || rrSim.workers.some(w => w.busy);
+            const fifoHasWork = fifoSim.jobs.length > 0 || fifoSim.queue.length > 0 || fifoSim.workers.some(w => w.busy);
+
+            if (rrHasWork || (comparisonMode && fifoHasWork)) {
+                setTimeout(tick, 100 / speed);
+            } else {
+                isRunning = false;
+                document.getElementById('startBtn').textContent = '▶ Start';
+            }
+        }
+
+        // Control functions
+        function addJob(taskCount) {
+            rrSim.addJob(taskCount);
+            if (comparisonMode) {
+                fifoSim.addJob(taskCount);
+            }
+            render();
+        }
+
+        function toggleSimulation() {
+            isRunning = !isRunning;
+            document.getElementById('startBtn').textContent = isRunning ? '⏸ Pause' : '▶ Start';
+
+            if (isRunning) {
+                tick();
+            }
+        }
+
+        function resetSimulation() {
+            isRunning = false;
+            document.getElementById('startBtn').textContent = '▶ Start';
+            rrSim.reset();
+            fifoSim.reset();
+            // Clear tracked rendered items
+            renderedJobs.rr.clear();
+            renderedJobs.fifo.clear();
+            renderedCompleted.rr.clear();
+            renderedCompleted.fifo.clear();
+            // Clear DOM
+            ['rr', 'fifo'].forEach(prefix => {
+                document.getElementById(`${prefix}-job-queue`).innerHTML = '<div class="empty-state">No jobs in queue. Add a job to start.</div>';
+                document.getElementById(`${prefix}-completed-list`).innerHTML = '<div class="empty-state" style="padding: 10px; width: 100%;">No completed jobs yet</div>';
+            });
+            initWorkers();
+            render();
+        }
+
+        function updateSpeed(value) {
+            speed = value / 5;
+            document.getElementById('speedValue').textContent = `${speed.toFixed(1)}x`;
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-theme');
+        }
+
+        function toggleComparisonMode() {
+            comparisonMode = !comparisonMode;
+            document.body.classList.toggle('comparison-mode', comparisonMode);
+            document.body.classList.toggle('single-mode', !comparisonMode);
+
+            const btn = document.querySelector('.mode-toggle');
+            btn.textContent = comparisonMode ? 'Single View' : 'Compare with FIFO';
+            btn.classList.toggle('active', comparisonMode);
+
+            // Sync FIFO with RR if entering comparison mode
+            if (comparisonMode) {
+                fifoSim.reset();
+                fifoSim.time = rrSim.time;
+                fifoSim.jobCounter = rrSim.jobCounter;
+                // Clear FIFO tracked items
+                renderedJobs.fifo.clear();
+                renderedCompleted.fifo.clear();
+                document.getElementById('fifo-job-queue').innerHTML = '<div class="empty-state">No jobs in queue. Add a job to start.</div>';
+                document.getElementById('fifo-completed-list').innerHTML = '<div class="empty-state" style="padding: 10px; width: 100%;">No completed jobs yet</div>';
+                // Copy current jobs
+                rrSim.jobs.forEach(job => {
+                    const newJob = { ...job };
+                    fifoSim.jobs.push(newJob);
+                    fifoSim.queue.push(newJob.id);
+                });
+            }
+
+            initWorkers();
+            render();
+        }
+
+        // Initialize
+        initWorkers();
+        render();
+    </script>
+</body>
+</html>
